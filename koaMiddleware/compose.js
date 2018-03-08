@@ -1,3 +1,4 @@
+// 自己实现的简单 koa-compose
 // compose用来将多个middleWare组合为一个middleWare。同时compose还是一个middleWare
 const compose = middleWares => {
   if (!Array.isArray(middleWares)) {
@@ -25,7 +26,9 @@ const compose = middleWares => {
 
   return async (ctx, next) => {
     dispatch(ctx, 0);
-    await next();
+    if(next) {
+      await next();
+    }
   };
 };
 

@@ -27,17 +27,23 @@ modulex.exports = class Application extends Emitter {
   }
 
   callback() {
-    const fn = compose(this.middleware);
+    const fn = compose(this.middleware); // 实质上是将多个middleWare组合为一个
 
     if (!this.listeners('error').length) this.on('error', this.onerror);
 
     const handleRequest = (req, res) => {
-      const ctx = this.createContext(req, res);
+      // 利用req, res来创造ctx
+      const ctx = this.createContext(req, res); // TODO:bai 在实现了对middleWare的调用过后，需要了解如何将ctx作为参数传递给middleWare
       return this.handleRequest(ctx, fn);
     }
 
     return handleRequest;
 
+  }
+
+  handleRequest(ctx, fnMiddleWare) {
+    const res = ctx.res;
+    return fnMiddleWare(ctx).then(()=>res.end()).catch((err)=>{console.error(err)}); // 调用组合的中间件，然后res.end或者error
   }
 
 
