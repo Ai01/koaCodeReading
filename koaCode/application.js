@@ -2,6 +2,7 @@
 
 const Emitter = require('events');
 const http = require('http');
+const Cookies = require('cookies');
 
 const context = require('./context');
 const request = require('./request');
@@ -44,6 +45,31 @@ modulex.exports = class Application extends Emitter {
   handleRequest(ctx, fnMiddleWare) {
     const res = ctx.res;
     return fnMiddleWare(ctx).then(()=>res.end()).catch((err)=>{console.error(err)}); // 调用组合的中间件，然后res.end或者error
+  }
+
+  createContext(req, res) {
+    const context = Object.create(this.context);
+    const request = context.request = Object.create(this.request);
+    const response = context.response = Object.create(this.response);
+
+    context.app = request.app = response.app = this;
+    context.req = request.req = response.req = req;
+    context.res = request.res = response.res = res;
+
+    request.ctx = response.ctx = context;
+    request.response = response;
+    response.request = request;
+
+    context.originalUrl = request.originalUrl = req.url;
+    context.cookies = new Cookies(req, res, {
+      keys: this.keys,
+      secure: request.secure,
+    });
+
+    request.ip = request.ips[0] || req.socket.remoteAddress || '';
+    context.accept = request.accept = accepts(req);
+    context.state = {};
+    return context;
   }
 
 
